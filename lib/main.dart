@@ -1,0 +1,52 @@
+import 'package:flutter/material.dart';
+import 'package:kint/providers/settings_provider.dart';
+import 'package:provider/provider.dart';
+import 'data/database.dart';
+import 'providers/bible_provider.dart';
+import 'ui/responsive_layout.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final database = AppDatabase();
+  
+  // We can await generic preferences here if needed, or let providers handle it.
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<AppDatabase>.value(value: database),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        // BibleProvider needs access to SettingsProvider to load initial state
+        ChangeNotifierProxyProvider<SettingsProvider, BibleProvider>(
+          create: (context) => BibleProvider(database, null),
+          update: (context, settings, previous) {
+            // Check if we already have a provider
+            final provider = previous ?? BibleProvider(database, settings);
+            
+            // Just update its settings reference
+            provider.updateSettings(settings); 
+            
+            return provider;
+          },
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Greek Interlinear Bible',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.teal, // Modern Material 3 look
+      ),
+      home: const ResponsiveLayout(),
+    );
+  }
+}
