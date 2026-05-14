@@ -1,4 +1,4 @@
-package com.peace_shillong.kint
+package peace_shillong.kint
 
 import io.flutter.embedding.android.FlutterActivity
 
